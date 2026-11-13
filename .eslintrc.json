@@ -33,7 +33,8 @@
           "assertOnPage",
           "assertHeadingVisible",
           "assertErrorMessage",
-          "assertWelcomeMessage"
+          "assertWelcomeMessage",
+          "assertNoA11yViolations"
         ]
       }
     ]

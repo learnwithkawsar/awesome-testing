@@ -20,6 +20,7 @@
     "test:prod:smoke": "cross-env ENV=prod playwright test --grep @smoke",
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
+    "test:a11y": "playwright test --grep @a11y",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",
@@ -33,6 +34,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/mcp": "^0.0.84",
     "@playwright/test": "^1.44.0",
     "@types/node": "^20.12.0",

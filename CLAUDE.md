@@ -8,7 +8,7 @@ A Playwright + TypeScript end-to-end test framework with:
 
 - **Multi-environment config** — `config/.env.<env>` validated by `zod` in `config/env.config.ts`.
 - **Fixture-driven Page Object Model** — Page Objects are injected into tests via `src/fixtures/pageFixtures.ts`.
-- **Tag-based suites** — `@smoke`, `@regression`, `@auth`.
+- **Tag-based suites** — `@smoke`, `@regression`, `@auth`, plus `@a11y` for accessibility scans.
 - **Playwright MCP** — `.mcp.json` (Claude Code) and `.cursor/mcp.json` (Cursor) start `@playwright/mcp`.
 
 ## Commands
@@ -41,9 +41,10 @@ Always run `npm run typecheck && npm run lint` and the affected specs (`--projec
    test('does X', { tag: ['@smoke', '@regression'] }, async ({ loginPage }) => { ... });
    ```
    `@smoke` = fast, critical path, safe to run against prod (read-only, no data mutation).
-9. Tests must be independent and parallel-safe (`fullyParallel: true`). Use `apiHelper` for setup/teardown instead of UI where possible.
-10. **Don't log in through the UI** except in tests about login itself. Reuse the saved session with `test.use({ storageState: STORAGE_STATE.admin })` (produced by the `setup` project in `tests/setup/auth.setup.ts`). New roles go in `src/fixtures/authState.ts` plus a matching setup test.
-11. **Test data comes from builders** in `src/data/` (`Users.admin()`, `aUser().withWrongPassword().build()`, `uniqueId('x')`), not literals in specs. Anything a test creates must use `uniqueId()` so parallel runs don't collide.
+9. **Accessibility:** use `await xPage.assertNoA11yViolations()` (axe-core, WCAG 2.1 A/AA, defined on `BasePage`) after the page has rendered; tag such tests `@a11y` plus `@regression`. Never call `AxeBuilder` from specs. `disableRules` only per page, with a comment and ticket link.
+10. Tests must be independent and parallel-safe (`fullyParallel: true`). Use `apiHelper` for setup/teardown instead of UI where possible.
+11. **Don't log in through the UI** except in tests about login itself. Reuse the saved session with `test.use({ storageState: STORAGE_STATE.admin })` (produced by the `setup` project in `tests/setup/auth.setup.ts`). New roles go in `src/fixtures/authState.ts` plus a matching setup test.
+12. **Test data comes from builders** in `src/data/` (`Users.admin()`, `aUser().withWrongPassword().build()`, `uniqueId('x')`), not literals in specs. Anything a test creates must use `uniqueId()` so parallel runs don't collide.
 
 ## Adding a new page (workflow for agents)
 
@@ -88,6 +89,7 @@ src/fixtures/pageFixtures.ts  test = base.extend<Fixtures>(...); re-exports STOR
 src/fixtures/authState.ts   STORAGE_STATE paths (playwright/.auth/*.json, git-ignored)
 src/data/*.ts               test data builders (aUser, Users, uniqueId) — import from '@data/index'
 tests/setup/auth.setup.ts   `setup` project: logs in once, saves storageState
+src/utils/accessibility.ts  axe-core scan + violation formatting (used by BasePage.assertNoA11yViolations)
 src/utils/apiHelper.ts      API helper for hybrid tests (fixture: apiHelper)
 src/utils/logger.ts         createLogger(scope); DEBUG_LOGS=true enables debug
 tests/**                    Specs only — no locators, no `new XPage()`

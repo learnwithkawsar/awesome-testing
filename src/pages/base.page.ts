@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { formatViolations, scanAccessibility, type A11yScanOptions } from '@utils/accessibility';
 import { createLogger, type Logger } from '@utils/logger';
 
 /**
@@ -58,6 +59,23 @@ export abstract class BasePage {
 
   async assertHeadingVisible(name: string | RegExp, level?: number): Promise<void> {
     await expect(this.heading(name, level)).toBeVisible();
+  }
+
+  // --- Accessibility (axe-core) ---------------------------------------------
+
+  /**
+   * Scans the page with axe (WCAG 2.1 A/AA by default) and fails with a readable
+   * list of violations. Full axe results are attached to the HTML report.
+   */
+  async assertNoA11yViolations(options: A11yScanOptions = {}): Promise<void> {
+    const violations = await scanAccessibility(this.page, options);
+    this.log.info(`Accessibility scan found ${violations.length} violation(s)`);
+    // Compare rule IDs only so the failure shows the readable summary, not a 200-line object diff.
+    expect(
+      violations.map((violation) => violation.id),
+      `Accessibility violations:
+${formatViolations(violations)}`,
+    ).toEqual([]);
   }
 
   // --- Diagnostics -----------------------------------------------------------

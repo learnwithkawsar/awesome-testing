@@ -82,6 +82,7 @@ npm run test:prod:smoke  # only @smoke tests, against prod
 | ------------------------------- | ---------------------------------------------------------------------------------- |
 | Only smoke tests                | `npm run test:smoke`                                                               |
 | Only regression tests           | `npm run test:regression`                                                          |
+| Only accessibility tests        | `npm run test:a11y`                                                                |
 | Only Chromium                   | `npm run test:chromium`                                                            |
 | One file                        | `npx playwright test tests/auth/login.spec.ts`                                     |
 | Tests whose name contains text  | `npx playwright test -g "logs in"`                                                 |
@@ -197,6 +198,23 @@ Every test needs at least one tag:
 | `@smoke`      | Fast, critical path, read-only (safe to run against prod) |
 | `@regression` | Full functional coverage                                  |
 | `@auth`       | Authentication / authorization flows                      |
+| `@a11y`       | Accessibility (axe-core) scans; add alongside another tag |
+
+### Accessibility checks (axe-core)
+
+Every Page Object has `assertNoA11yViolations()`. It scans the current page with [axe-core](https://github.com/dequelabs/axe-core) against WCAG 2.1 A/AA. On failure it lists each broken rule, a help link and the elements involved. The full axe results are attached to the HTML report as `accessibility-scan`.
+
+```ts
+test('settings page is accessible', { tag: ['@regression', '@a11y'] }, async ({ settingsPage }) => {
+  await settingsPage.goto();
+  await settingsPage.assertIsVisible(); // let the page finish rendering first
+  await settingsPage.assertNoA11yViolations();
+});
+```
+
+Options: `include` / `exclude` (CSS selectors), `disableRules` (axe rule IDs) and `tags`. Disable a rule only for the page that has the known issue, with a comment and ticket link. Run just these tests with `npm run test:a11y`. See [tests/a11y/accessibility.spec.ts](tests/a11y/accessibility.spec.ts).
+
+Automated scans catch only part of accessibility problems. They don't replace keyboard and screen-reader testing.
 
 ### Starting tests already logged in
 
@@ -328,7 +346,7 @@ In CI, failed tests are retried up to 2 times; a test that passes on retry is ma
 | `npm run test:local:headed` / `test:dev:headed` / `test:staging:headed` | Headed, Chromium only, one window at a time                |
 | `npm run test:staging:headed:all`                                       | Headed, all browsers in parallel                           |
 | `npm run test:prod:smoke`                                               | `@smoke` tests against prod                                |
-| `npm run test:smoke` / `test:regression`                                | Filter by tag (current env)                                |
+| `npm run test:smoke` / `test:regression` / `test:a11y`                  | Filter by tag (current env)                                |
 | `npm run test:chromium`                                                 | Chromium only, headless                                    |
 | `npm run test:ui`                                                       | Playwright UI mode                                         |
 | `npm run test:debug`                                                    | Playwright Inspector                                       |
