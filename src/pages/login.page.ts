@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
+import type { UserCredentials } from '@data/user.builder';
 import { BasePage } from './base.page';
 
 export class LoginPage extends BasePage {
@@ -22,6 +23,10 @@ export class LoginPage extends BasePage {
     await this.usernameInput.fill(username);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
+  }
+
+  async login(user: UserCredentials): Promise<void> {
+    await this.submitLoginForm(user.username, user.password);
   }
 
   async assertIsVisible(): Promise<void> {

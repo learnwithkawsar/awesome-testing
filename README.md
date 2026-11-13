@@ -168,6 +168,9 @@ npx playwright show-report path/to/unzipped-folder
 config/env.config.ts          Loads config/.env.<ENV>, validates it with zod, exports `env`
 src/pages/*.page.ts           Page Objects: locators + actions + assertions for one page
 src/fixtures/pageFixtures.ts  Injects Page Objects into tests by name
+src/fixtures/authState.ts     Paths of saved login sessions (STORAGE_STATE)
+src/data/*.ts                 Test data builders (aUser(), Users, uniqueId())
+tests/setup/auth.setup.ts     Logs in once per run and saves the session
 tests/**/*.spec.ts            Test scenarios, written only against fixtures
 playwright.config.ts          Browsers, timeouts, reporters, failure artifacts
 ```
@@ -178,10 +181,11 @@ Import `test` and `expect` from the fixtures file and ask for pages by name. Nev
 
 ```ts
 import { test } from '@fixtures/pageFixtures';
+import { Users } from '@data/index';
 
-test('user logs in', { tag: ['@smoke', '@auth'] }, async ({ loginPage, dashboardPage, env }) => {
+test('user logs in', { tag: ['@smoke', '@auth'] }, async ({ loginPage, dashboardPage }) => {
   await loginPage.goto();
-  await loginPage.submitLoginForm(env.ADMIN_USERNAME, env.ADMIN_PASSWORD);
+  await loginPage.login(Users.admin());
   await dashboardPage.assertIsVisible();
 });
 ```
@@ -193,6 +197,37 @@ Every test needs at least one tag:
 | `@smoke`      | Fast, critical path, read-only (safe to run against prod) |
 | `@regression` | Full functional coverage                                  |
 | `@auth`       | Authentication / authorization flows                      |
+
+### Starting tests already logged in
+
+The `setup` project ([tests/setup/auth.setup.ts](tests/setup/auth.setup.ts)) logs in once per run and saves the session to `playwright/.auth/admin.json` (git-ignored). Every browser project depends on it, so it runs automatically, even with `--grep` or `--project`.
+
+Tests start **logged out** by default. To reuse the saved session in a spec, add one line at the top of the file:
+
+```ts
+import { test, STORAGE_STATE } from '@fixtures/pageFixtures';
+
+test.use({ storageState: STORAGE_STATE.admin });
+```
+
+Only login/logout tests should go through the login form. Everything else that needs a user should use the saved session. See [tests/secure/secureArea.spec.ts](tests/secure/secureArea.spec.ts).
+
+To add another role, add a path to `STORAGE_STATE` in `src/fixtures/authState.ts` and a matching test in `auth.setup.ts`.
+
+### Test data builders
+
+Build test data in [src/data/](src/data/) instead of writing literals in specs. Builders start from valid defaults (the configured admin user), so a test only says what is different:
+
+```ts
+import { aUser, Users, uniqueId } from '@data/index';
+
+Users.admin(); // credentials from config/.env.<ENV>
+Users.unknown(); // unique, non-existent username
+aUser().withWrongPassword().build(); // same as Users.withWrongPassword()
+aUser().withUsername(uniqueId('qa')).build();
+```
+
+Generated values use `uniqueId()`, so parallel workers and repeated runs never collide. Add new builders as `src/data/<thing>.builder.ts` and export them from `src/data/index.ts`.
 
 ### Adding a new page
 

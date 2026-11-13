@@ -38,9 +38,12 @@ export default defineConfig({
   },
 
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-    { name: 'Mobile Chrome', use: { ...devices['Pixel 7'] } },
+    // Logs in once and saves the session (see src/fixtures/authState.ts).
+    { name: 'setup', testMatch: /.*\.setup\.ts/, use: { ...devices['Desktop Chrome'] } },
+
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] }, dependencies: ['setup'] },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] }, dependencies: ['setup'] },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, dependencies: ['setup'] },
+    { name: 'Mobile Chrome', use: { ...devices['Pixel 7'] }, dependencies: ['setup'] },
   ],
 });
