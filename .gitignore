@@ -19,6 +19,9 @@ config/.env.*
 # Playwright MCP output
 .playwright-mcp/
 
+# Claude Code agent worktrees
+.claude/worktrees/
+
 # OS / editor
 .DS_Store
 Thumbs.db

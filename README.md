@@ -330,6 +330,17 @@ Notes:
 - It uses your real Chrome profile and sign-ins. Point it at dev or staging, not prod.
 - Claude won't type passwords into sites for you. Sign in yourself in that tab, then let Claude continue.
 
+#### Project skills: design test cases, then automate them
+
+Two Claude Code skills in [.claude/skills/](.claude/skills/) turn a feature into reviewed test cases and then into specs that follow this repo's rules. Claude uses them automatically when your request matches; you can also name them.
+
+| Skill                                                          | Ask for example                                                                   | Produces                                                                                                                                                                        |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`test-case-design`](.claude/skills/test-case-design/SKILL.md) | "Design test cases for the /dropdown page" or "What should we test for JIRA-123?" | `docs/test-cases/<feature>.md`: a table with IDs (`TC-DROPDOWN-001`), steps, expected results, priority, tags and how to automate each case. Claude stops here for your review. |
+| [`write-e2e-test`](.claude/skills/write-e2e-test/SKILL.md)     | "Automate docs/test-cases/dropdown.md" or "Add a test for the checkboxes page"    | Walks through the page with Playwright MCP, then writes the page object, fixture and tagged spec, and runs typecheck, lint and the spec 3 times to catch flakiness.             |
+
+The usual flow is: design → you review and edit the table → automate. Test titles start with the case ID, so a failing test points back to its design.
+
 ---
 
 ## 5. Environments
