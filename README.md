@@ -300,6 +300,36 @@ CI runs the same checks and fails on any lint warning.
 
 [CLAUDE.md](CLAUDE.md) contains the rules agents follow in this repo.
 
+#### Watch Claude work in your own Chrome (Claude in Chrome)
+
+The Playwright MCP above drives a separate browser. If you'd rather **watch Claude click through the app in your everyday Chrome**, use the Claude in Chrome extension:
+
+1. Install the **Claude in Chrome** extension from the Chrome Web Store and sign in with the same Claude account you use for Claude Code.
+2. Connect it to Claude Code:
+   - **Desktop app:** set "Preferred browser" to Chrome in the app's settings.
+   - **CLI:** start with `claude --chrome`, or run `/chrome` inside a session.
+3. Ask Claude to use Chrome, for example:
+
+   > Using Claude in Chrome, open the staging app's /login page and walk through the "blocks direct access to the secure area" scenario from tests/auth/login.spec.ts. Tell me if the page behaves differently from what the spec expects.
+
+   > Using Claude in Chrome, open /settings and suggest accessible locators for a SettingsPage object.
+
+Claude opens its own tab group in your Chrome window, and you can see every navigation and click as it happens.
+
+Which tool to use:
+
+| You want to…                                        | Use                                               |
+| --------------------------------------------------- | ------------------------------------------------- |
+| Run the test suite and watch it                     | `npm run test:staging:headed` (add `SLOW_MO=500`) |
+| Have Claude explore a page and write a Page Object  | Playwright MCP (`.mcp.json`)                      |
+| Watch Claude walk through a scenario in your Chrome | Claude in Chrome                                  |
+
+Notes:
+
+- Claude in Chrome drives the browser by hand. It doesn't run `npx playwright test`; anything worth keeping should become a spec.
+- It uses your real Chrome profile and sign-ins. Point it at dev or staging, not prod.
+- Claude won't type passwords into sites for you. Sign in yourself in that tab, then let Claude continue.
+
 ---
 
 ## 5. Environments

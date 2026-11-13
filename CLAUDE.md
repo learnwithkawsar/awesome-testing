@@ -73,6 +73,12 @@ Always run `npm run typecheck && npm run lint` and the affected specs (`--projec
 5. **Write the spec** under `tests/<feature>/<name>.spec.ts`, tagged, using only fixtures.
 6. **Verify**: `npm run typecheck && npm run lint && npx playwright test tests/<feature> --project=chromium`. If a locator is flaky, re-snapshot with MCP and fix the Page Object — do not add waits or retries.
 
+## Browsing the app as an agent
+
+- **Playwright MCP** (`.mcp.json`) is the default for inspecting pages and writing Page Objects (see above).
+- **Claude in Chrome** (`mcp__claude-in-chrome__*` tools) when the user asks to watch, or to use their own Chrome. Open a new tab in your tab group, never act on the user's other tabs, and stay on dev/staging. Don't type passwords: ask the user to sign in in that tab.
+- Whatever you learn while browsing goes into Page Objects and specs, so it runs headless in CI.
+
 ## Environment
 
 - `ENV` selects `config/.env.<ENV>` (`local | dev | staging | prod`, default `staging`).
