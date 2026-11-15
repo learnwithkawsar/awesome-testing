@@ -15,7 +15,8 @@ export class LoginPage extends BasePage {
     this.usernameInput = page.getByLabel('Username');
     this.passwordInput = page.getByLabel('Password');
     this.loginButton = page.getByRole('button', { name: 'Login' });
-    this.flashMessage = page.locator('#flash');
+    // The app's live region for flash messages (role="region", aria-label="Messages").
+    this.flashMessage = page.getByRole('region', { name: 'Messages' });
   }
 
   async submitLoginForm(username: string, password: string): Promise<void> {

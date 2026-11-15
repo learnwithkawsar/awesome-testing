@@ -11,7 +11,8 @@ export class DashboardPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.logoutLink = page.getByRole('link', { name: 'Logout' });
-    this.flashMessage = page.locator('#flash');
+    // The app's live region for flash messages (role="region", aria-label="Messages").
+    this.flashMessage = page.getByRole('region', { name: 'Messages' });
   }
 
   async assertIsVisible(): Promise<void> {
