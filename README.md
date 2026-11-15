@@ -176,10 +176,15 @@ To always record traces (e.g. for a demo), add `--trace on` to the command.
 
 **Published dashboard (GitHub Pages).** The [Test Report Dashboard workflow](.github/workflows/report.yml) runs the full suite on every push to `main`, daily at 05:00 UTC, and on demand (Actions → Test Report Dashboard → Run workflow). It publishes:
 
-- `https://<owner>.github.io/<repo>/`: the dashboard, with the trend kept across runs,
-- `https://<owner>.github.io/<repo>/playwright/`: the Playwright HTML report of the same run.
+`https://<owner>.github.io/<repo>/`: the dashboard, with the trend kept across runs.
 
-It publishes even when tests fail, then marks the run as failed. One-time setup by a repo admin: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+It publishes even when tests fail, then marks the run as failed. One-time setup by a repo admin: **Settings → Pages → Build and deployment → Source: GitHub Actions**. Until then the workflow fails.
+
+What is and isn't published:
+
+- Only the dashboard page and its trend data go to Pages. `ADMIN_PASSWORD` is replaced with `***` in them (steps like `Fill "<password>"` otherwise record it).
+- Traces, videos, screenshots and the Playwright HTML report are **not** published: they record typed values and page content. Get them from the run's `full-report` artifact. Links to attachments in the published dashboard will not open.
+- If you add another secret (token, API key), add it to the `createRedactingVisitor([...])` list in `playwright.config.ts`.
 
 **PR runs.** Each browser job uploads `dashboard-<browser>` and `playwright-report-<browser>` artifacts. Download from **Actions → the workflow run → Artifacts**, unzip, and run:
 
@@ -188,6 +193,8 @@ npx playwright show-report path/to/unzipped-folder
 ```
 
 For a dashboard artifact: `npx monocart show-report path/to/unzipped-folder/index.html`.
+
+Artifacts can be downloaded by anyone with read access to the repo, which for a public repo means any signed-in GitHub user. Traces and the Playwright HTML report in them contain typed passwords, so keep the repo private (or use test-only accounts) once real staging credentials are in CI secrets.
 
 ---
 

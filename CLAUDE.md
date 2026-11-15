@@ -91,6 +91,8 @@ Always run `npm run typecheck && npm run lint` and the affected specs (`--projec
 - Non-empty real environment variables (e.g. CI secrets) override values from the file.
 - Missing/invalid values fail fast with a readable error before any test runs.
 - `config/.env.*` files are git-ignored except `.env.example`; add new variables to **all** of: the zod schema, `src/types/env.d.ts`, `config/.env.example`, and the CI workflows.
+- Any new **secret** (password, token, key) must also go in the `createRedactingVisitor([...])` list in `playwright.config.ts`, so the published dashboard shows `***`.
+- Never publish traces, videos, screenshots or the Playwright HTML report (e.g. to GitHub Pages): they record typed values. Only the redacted dashboard `index.html`/`index.json` is published.
 
 ## File map
 
@@ -104,7 +106,8 @@ tests/setup/auth.setup.ts   `setup` project: logs in once, saves storageState
 src/utils/accessibility.ts  axe-core scan + violation formatting (used by BasePage.assertNoA11yViolations)
 src/utils/apiHelper.ts      API helper for hybrid tests (fixture: apiHelper)
 src/utils/logger.ts         createLogger(scope); DEBUG_LOGS=true enables debug
+src/utils/redact.ts         secret redaction for the dashboard (monocart visitor)
 tests/**                    Specs only — no locators, no `new XPage()`
 playwright.config.ts        projects: setup → chromium, firefox, webkit, Mobile Chrome; reporters: list, html, monocart (dashboard)
-.github/workflows/report.yml  runs the suite on main and publishes the dashboard to GitHub Pages
+.github/workflows/report.yml  runs the suite on main; publishes only the redacted dashboard to Pages, full reports as an artifact
 ```

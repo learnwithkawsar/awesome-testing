@@ -1,8 +1,9 @@
 name: Test Report Dashboard
 
 # Runs the full suite on main and publishes the results to GitHub Pages:
-#   https://<owner>.github.io/<repo>/            -> dashboard (trends, tags, flaky tests)
-#   https://<owner>.github.io/<repo>/playwright/ -> Playwright HTML report (traces, videos)
+#   https://<owner>.github.io/<repo>/  -> dashboard (trends, tags, flaky tests), secrets redacted
+# Traces, videos, screenshots and the Playwright HTML report are NOT published; download them
+# from the run's `full-report` artifact.
 # One-time setup: Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
 on:
   push:
@@ -58,13 +59,26 @@ jobs:
         continue-on-error: true
         run: npx playwright test
 
-      - name: Add the Playwright HTML report under /playwright
+      # Traces, videos and the Playwright HTML report record typed values (including passwords)
+      # and page content, so they stay in this run's artifacts and are never published.
+      - name: Keep the full reports (traces, videos) as a run artifact
         if: ${{ !cancelled() }}
-        run: cp -r playwright-report monocart-report/playwright
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-report
+          path: |
+            monocart-report/
+            playwright-report/
+          retention-days: 14
+      - name: Publish only the dashboard page and its trend data
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p pages
+          cp monocart-report/index.html monocart-report/index.json pages/
       - uses: actions/upload-pages-artifact@v3
         if: ${{ !cancelled() }}
         with:
-          path: monocart-report
+          path: pages
 
   deploy:
     needs: test

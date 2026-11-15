@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { env } from './config/env.config';
+import { createRedactingVisitor } from './src/utils/redact';
 
 const isCI = !!process.env.CI;
 
@@ -7,6 +8,7 @@ const isCI = !!process.env.CI;
  * Dashboard (monocart-reporter): one self-contained HTML page with pass-rate trends,
  * results by tag/browser, and attachments. Each run reads the previous run's index.json
  * from the same folder to extend the trend chart (CI restores it from GitHub Pages first).
+ * Secrets are replaced with *** in its data, since steps like `Fill "<password>"` record typed values.
  */
 const DASHBOARD_DIR = 'monocart-report';
 
@@ -34,6 +36,7 @@ export default defineConfig({
         name: `Awesome Testing (${env.ENV})`,
         outputFile: `${DASHBOARD_DIR}/index.html`,
         trend: `${DASHBOARD_DIR}/index.json`,
+        visitor: createRedactingVisitor([env.ADMIN_PASSWORD]),
         tags: {
           smoke: { background: '#2E7D32' },
           regression: { background: '#1565C0' },
