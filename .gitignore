@@ -5,6 +5,7 @@ node_modules/
 test-results/
 playwright-report/
 blob-report/
+monocart-report/
 playwright/.cache/
 playwright/.auth/
 

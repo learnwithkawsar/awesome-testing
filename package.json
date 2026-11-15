@@ -24,6 +24,7 @@
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",
+    "report:dashboard": "monocart show-report monocart-report/index.html",
     "codegen": "playwright codegen",
     "install:browsers": "playwright install --with-deps",
     "mcp": "playwright-mcp",
@@ -45,6 +46,7 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-playwright": "^1.6.2",
+    "monocart-reporter": "^2.15.1",
     "prettier": "^3.3.0",
     "typescript": "~5.4.0",
     "zod": "^3.23.0"

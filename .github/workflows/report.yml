@@ -1,0 +1,84 @@
+name: Test Report Dashboard
+
+# Runs the full suite on main and publishes the results to GitHub Pages:
+#   https://<owner>.github.io/<repo>/            -> dashboard (trends, tags, flaky tests)
+#   https://<owner>.github.io/<repo>/playwright/ -> Playwright HTML report (traces, videos)
+# One-time setup: Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Daily at 05:00 UTC, so the trend shows app changes even without commits.
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      tests: ${{ steps.tests.outcome }}
+    env:
+      ENV: staging
+      BASE_URL: ${{ vars.STAGING_BASE_URL }}
+      API_URL: ${{ vars.STAGING_API_URL }}
+      ADMIN_USERNAME: ${{ secrets.STAGING_ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.STAGING_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Create env file from template
+        run: cp config/.env.example config/.env.staging
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Restore previous results for the trend chart
+        run: |
+          mkdir -p monocart-report
+          curl -fsSL "${{ steps.pages.outputs.base_url }}/index.json" -o monocart-report/index.json \
+            || echo "No published report yet; the trend starts with this run."
+
+      - name: Run all tests
+        id: tests
+        continue-on-error: true
+        run: npx playwright test
+
+      - name: Add the Playwright HTML report under /playwright
+        if: ${{ !cancelled() }}
+        run: cp -r playwright-report monocart-report/playwright
+      - uses: actions/upload-pages-artifact@v3
+        if: ${{ !cancelled() }}
+        with:
+          path: monocart-report
+
+  deploy:
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      # Publish first, then fail the run if tests failed, so the dashboard always shows the latest results.
+      - name: Fail if tests failed
+        if: ${{ needs.test.outputs.tests == 'failure' }}
+        run: |
+          echo "::error::Some tests failed. See ${{ steps.deployment.outputs.page_url }}"
+          exit 1

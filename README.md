@@ -114,7 +114,28 @@ Opens the Playwright Inspector so you can pause and step through each action.
 
 ## 3. Viewing reports
 
-Every run writes an **HTML report** to `playwright-report/` and failure artifacts to `test-results/`. The terminal also prints a live pass/fail list while tests run.
+Every run writes two reports, plus failure artifacts in `test-results/`:
+
+- **Dashboard** (`monocart-report/`): trends across runs, results by tag and browser, slowest and flaky tests. Best for "how healthy is the suite?"
+- **Playwright HTML report** (`playwright-report/`): every step, with screenshots, videos and traces. Best for "why did this test fail?"
+
+The terminal also prints a live pass/fail list while tests run.
+
+### Open the dashboard
+
+```bash
+npm run report:dashboard
+```
+
+This starts a local server (the dashboard can't be opened as a plain file) and shows:
+
+- a summary of passed, failed, flaky and skipped tests,
+- a **trend chart** across runs (each run reads the previous run's results from `monocart-report/index.json`, so the chart grows on your machine too),
+- the slowest tests and slowest failures,
+- a timeline of what each worker ran, with CPU and memory,
+- every test grouped by browser and file, with colour-coded tags, logs and attachments.
+
+The table opens first; the summary and trend chart open from the menu icon at the top right. Delete `monocart-report/` to reset your local history.
 
 ### Open the HTML report
 
@@ -153,11 +174,20 @@ To always record traces (e.g. for a demo), add `--trace on` to the command.
 
 ### Reports from CI
 
-On GitHub, open **Actions → the workflow run → Artifacts** and download `playwright-report-<browser>` (or `smoke-prod-report`). Unzip it and run:
+**Published dashboard (GitHub Pages).** The [Test Report Dashboard workflow](.github/workflows/report.yml) runs the full suite on every push to `main`, daily at 05:00 UTC, and on demand (Actions → Test Report Dashboard → Run workflow). It publishes:
+
+- `https://<owner>.github.io/<repo>/`: the dashboard, with the trend kept across runs,
+- `https://<owner>.github.io/<repo>/playwright/`: the Playwright HTML report of the same run.
+
+It publishes even when tests fail, then marks the run as failed. One-time setup by a repo admin: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+**PR runs.** Each browser job uploads `dashboard-<browser>` and `playwright-report-<browser>` artifacts. Download from **Actions → the workflow run → Artifacts**, unzip, and run:
 
 ```bash
 npx playwright show-report path/to/unzipped-folder
 ```
+
+For a dashboard artifact: `npx monocart show-report path/to/unzipped-folder/index.html`.
 
 ---
 
@@ -392,6 +422,7 @@ In CI, failed tests are retried up to 2 times; a test that passes on retry is ma
 | `npm run test:ui`                                                       | Playwright UI mode                                         |
 | `npm run test:debug`                                                    | Playwright Inspector                                       |
 | `npm run report`                                                        | Open the last HTML report                                  |
+| `npm run report:dashboard`                                              | Open the dashboard (trends, tags, flaky tests)             |
 | `npm run codegen`                                                       | Record actions and locators                                |
 | `npm run install:browsers`                                              | Install browsers plus OS dependencies                      |
 | `npm run typecheck`                                                     | Strict TypeScript check                                    |

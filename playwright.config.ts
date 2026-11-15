@@ -4,6 +4,13 @@ import { env } from './config/env.config';
 const isCI = !!process.env.CI;
 
 /**
+ * Dashboard (monocart-reporter): one self-contained HTML page with pass-rate trends,
+ * results by tag/browser, and attachments. Each run reads the previous run's index.json
+ * from the same folder to extend the trend chart (CI restores it from GitHub Pages first).
+ */
+const DASHBOARD_DIR = 'monocart-report';
+
+/**
  * Headless by default; pass `--headed` on the CLI (or use the *:headed npm scripts)
  * for visual inspection. No config edits needed to switch modes.
  * The *:headed scripts use one browser and one worker, so only one window is open at a time.
@@ -18,7 +25,24 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 10_000 },
 
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: [
+    ['list'],
+    ['html', { open: 'never' }],
+    [
+      'monocart-reporter',
+      {
+        name: `Awesome Testing (${env.ENV})`,
+        outputFile: `${DASHBOARD_DIR}/index.html`,
+        trend: `${DASHBOARD_DIR}/index.json`,
+        tags: {
+          smoke: { background: '#2E7D32' },
+          regression: { background: '#1565C0' },
+          auth: { background: '#6A1B9A' },
+          a11y: { background: '#EF6C00' },
+        },
+      },
+    ],
+  ],
 
   metadata: {
     environment: env.ENV,

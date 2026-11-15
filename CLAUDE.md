@@ -21,6 +21,7 @@ A Playwright + TypeScript end-to-end test framework with:
 | Prod smoke                        | `npm run test:prod:smoke`                                         |
 | One file / one project            | `npx playwright test tests/auth/login.spec.ts --project=chromium` |
 | Interactive UI                    | `npm run test:ui`                                                 |
+| Results dashboard (trends)        | `npm run report:dashboard`                                        |
 | Type check                        | `npm run typecheck`                                               |
 | Lint (must be zero warnings)      | `npm run lint`                                                    |
 | Format                            | `npm run format`                                                  |
@@ -104,5 +105,6 @@ src/utils/accessibility.ts  axe-core scan + violation formatting (used by BasePa
 src/utils/apiHelper.ts      API helper for hybrid tests (fixture: apiHelper)
 src/utils/logger.ts         createLogger(scope); DEBUG_LOGS=true enables debug
 tests/**                    Specs only — no locators, no `new XPage()`
-playwright.config.ts        projects: setup → chromium, firefox, webkit, Mobile Chrome
+playwright.config.ts        projects: setup → chromium, firefox, webkit, Mobile Chrome; reporters: list, html, monocart (dashboard)
+.github/workflows/report.yml  runs the suite on main and publishes the dashboard to GitHub Pages
 ```
